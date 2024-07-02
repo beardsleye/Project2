@@ -1,0 +1,37 @@
+# Do header
+
+```{r Query API}
+library(httr)
+library(jsonlite)
+library(tidyverse)
+
+title<-"olympics"
+time<-"2024-06-02"
+key<- "82114f6cce76476db31ee999aae3e892"
+
+api_function<-function(title,time,key){
+  
+URL<-"https://newsapi.org/v2/everything"
+
+param<-list(
+  q = title,
+  apiKey = key,
+  from = time,
+  sortBy = "Popularity"
+)
+
+
+news<-GET(url=URL, query= param)$content |>
+  rawToChar() |>
+  fromJSON() |>
+  pluck("articles")
+
+olympics<-as_tibble(news)
+
+return(olympics)
+}
+
+olympics
+
+```
+
