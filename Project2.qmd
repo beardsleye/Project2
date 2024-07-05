@@ -34,4 +34,80 @@ return(olympics)
 olympics
 
 ```
+# create summaries
+```{r}
+#Create variable that indicated article discusses USA and gymnast(ics)
+olympics_stats<-olympics |>
+  mutate(USA = if_else(str_detect(content,"U.S."), "Yes", "No")) |>
+  mutate(England = if_else(str_detect(content,"England"), "Yes", "No")) |>
+  mutate(Sweden = if_else(str_detect(content,"Sweden"), "Yes", "No")) |>
+  mutate(Country=if_else(USA %in% "Yes", "USA",
+         if_else(England %in% "Yes", "England",
+         if_else(Sweden %in% "Yes", "Sweden", NA_character_)))) |>
+  mutate(Gymnastics = if_else(str_detect(content,"gymnast"), "Yes", "No"))
+ 
+olympics_stats
+#Create table to see number of articles that mention USA and gymnastics 
+olympics_stats |>
+group_by(USA,Gymnastics) |>
+  summarize(count=n()) |>
+  pivot_wider(names_from = Gymnastics, values_from = count)
+
+olympics_stats |>
+  group_by(Country) |>
+  summarize(count=n())
+
+#Create plot of USA
+ggplot(data=olympics_stats |> 
+         drop_na(USA), aes(x=USA)) +
+  geom_bar()
+
+#Create plot of gymnastics
+ggplot(data=olympics_stats |> 
+         drop_na(Gymnastics), aes(x=Gymnastics)) +
+  geom_bar()
+
+#Create plot of both
+ggplot(data=olympics_stats |> 
+         drop_na(USA, Gymnastics), aes(x=USA, fill= Gymnastics)) +
+  geom_bar() 
+
+library(ggpattern)
+library(magick)
+
+
+#create country plot
+if(require("magick")){
+  flags<-c(
+    system.file("img", "flag", "gb.png", package="ggpattern"),
+    system.file("img", "flag", "se.png", package="ggpattern"),
+    system.file("img", "flag", "us.png", package="ggpattern")
+ 
+  )
+
+  p<-ggplot(olympics_stats |> drop_na(Country), aes(x=Country)) +
+    geom_bar_pattern(
+    aes(
+      pattern_filename = Country
+    ), 
+    pattern         = 'image',
+    pattern_type    = 'tile',
+    fill            = 'white', 
+    colour          = 'black',
+    pattern_filter  = 'box',
+    pattern_scale   = -1
+  ) +
+  theme_bw(18) +
+  labs(
+    title = "Articles Mentioning Country"
+  ) + 
+  theme(legend.position = 'none') +
+  scale_pattern_filename_discrete(choices = flags) + 
+  scale_pattern_discrete(guide = guide_legend(nrow = 1))
+
+p
+
+}
+
+```
 
