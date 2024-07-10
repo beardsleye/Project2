@@ -1,4 +1,8 @@
-# Do header
+---
+title: Project 2
+date: 2018-05-04
+by: Emma Beardsley
+---
 
 ```{r Query API}
 library(httr)
@@ -34,7 +38,9 @@ return(olympics)
 olympics
 
 ```
+
 # create summaries
+
 ```{r}
 #Create variable that indicated article discusses USA and gymnast(ics)
 olympics_stats<-olympics |>
@@ -110,4 +116,3 @@ p
 }
 
 ```
-

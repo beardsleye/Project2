@@ -12,17 +12,23 @@ library(httr)
 library(jsonlite)
 library(tidyverse)
 library(DT)
+library(ggplot2)
 
-# Define UI for application that draws a histogram
+
 ui <- fluidPage(
 
-    # Application title
+    
     titlePanel("Articles about the Olympics"),
     
     sidebarLayout(
       mainPanel(
         verbatimTextOutput("summary")
       ),
+      function (sidebarPanel, position = c("left", "right"), 
+                fluid = TRUE) 
+      {
+        position <- match.arg(position)}
+    ),
       sidebarPanel(
         # Sidebar panel with tabs
         tabsetPanel(
@@ -59,9 +65,9 @@ ui <- fluidPage(
                    selectInput("x_var", "X-axis Variable", choices = names(data)),
                    selectInput("y_var", "Y-axis Variable", choices = names(data)),
                    selectInput("plot_type", "Plot Type",
-                               choices = "Bar Plot" = "bar"),
+                               choices = "bar"),
                    selectInput("summary_type", "Summary Type",
-                               choices = "Summary Statistics" = "summary"),
+                               choices = "summary"),
                    checkboxInput("facet_plot", "Facet Plot by:",
                                  value = FALSE),
                    conditionalPanel(
@@ -69,7 +75,7 @@ ui <- fluidPage(
                      selectInput("facet_var", "Facet Variable",
                                  choices = names(data))
                    )
-                   ),
+                   )
                    )
         )
       ),
@@ -81,45 +87,44 @@ ui <- fluidPage(
              verbatimTextOutput("summary")
       )
     )
-    )
+  
 
 
 server <- function(input, output, session) {
   output$about_text <- renderText({
-    "This is the About tab."
+    "This is the About tab."()
   })
   
   req(api_url)
   req(api_param)
   
-  # Make API request
+  
   response <- GET(api_url, query = list(parse_json(api_param)))
   
-  # Check if request was successful
+  
   if (http_error(response)) {
     stop("HTTP error ", response$status_code)
   }
   
-  # Parse JSON response
+  
   data <- content(response, "parsed", simplifyVector = TRUE)
   
-  # Convert to data frame
+  
   data <- as_tibble(data)
   
-  # Return data frame
+  
   data
 
-# API call for 'Data' tab
 api_data <- reactive({
   api_call(input$api_url, input$api_param)
 })
 
-# Display data table for 'Data' tab
-output$table <- renderDataTable({
+
+output$table <- DT::renderDataTable({
   api_data()
 })
 
-# Subset data based on user input for 'Data' tab
+
 filtered_data <- reactive({
   data <- api_data()
   
@@ -134,7 +139,7 @@ filtered_data <- reactive({
   data
 })
 
-# Update column choices based on data for 'Data' tab
+
 observe({
   if (!is.null(api_data())) {
     updateCheckboxGroupInput(session, "subset_cols", 
@@ -143,7 +148,7 @@ observe({
   }
 })
 
-# Download handler for 'Data' tab
+
 output$downloadData <- downloadHandler(
   filename = function() {
     "data.csv"
@@ -153,17 +158,16 @@ output$downloadData <- downloadHandler(
   }
 )
 
-# API call for 'Data Download' tab
 api_data_download <- reactive({
   api_call(input$api_url, input$api_param)
 })
 
-# Display data table for 'Data Download' tab
-output$table_download <- renderDataTable({
+
+output$table_download <- DT::renderDataTable({
   api_data_download()
 })
 
-# Subset data based on user input for 'Data Download' tab
+
 filtered_data_download <- reactive({
   data <- api_data_download()
   
@@ -178,7 +182,7 @@ filtered_data_download <- reactive({
   data
 })
 
-# Update column choices based on data for 'Data Download' tab
+
 observe({
   if (!is.null(api_data_download())) {
     updateCheckboxGroupInput(session, "subset_cols_download", 
@@ -187,7 +191,7 @@ observe({
   }
 })
 
-# Download handler for 'Data Download' tab
+
 output$downloadData_download <- downloadHandler(
   filename = function() {
     "downloaded_data_download.csv"
@@ -199,10 +203,10 @@ output$downloadData_download <- downloadHandler(
 
 # Generate plot based on user inputs
 output$plot <- renderPlot({
-  # Subset data based on selected variables
-  plot_data <- data[, c(input$x_var,input$y_var), drop = FALSE]
   
-  # Choose plot type
+  plot_data <- data[, c(input$x_var,input$y_var), drop = FALSE]()
+  
+  
   if (input$plot_type == "bar") {
     ggplot(data=data()|> 
              drop_na(input$x_var), aes(x=input$x_var)) +
@@ -216,8 +220,8 @@ output$plot <- renderPlot({
   }
   
   output$summary <- renderPrint({
-    # Subset data based on selected variables
-    summary_data <- data[, c(input$x_var, input$y_var), drop = FALSE]
+   
+    summary_data <- data[, c(input$x_var, input$y_var), drop = FALSE]()
   
 })
   
